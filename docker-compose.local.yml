@@ -1,0 +1,46 @@
+version: '2.1'
+services:
+  #######################################
+  # GO Services
+  #######################################
+  movebe:
+    extends:
+      file: common-services.yml
+      service: go
+    container_name: go_movebe
+    external_links:
+      - dev_mariadb:mariadb
+    environment:
+      VIRTUAL_HOST: "movebe.vm"
+      VIRTUAL_PORT: "80"
+      ENV: "dev"
+    mem_limit: 200m
+    networks:
+      default:
+        ipv4_address: 172.18.0.99
+    volumes:
+      - /home/nath/go/src/cmi_go_movebe:/go/src/cmi_go_movebe
+    working_dir: "/go/src/cmi_go_movebe"
+    entrypoint: "./run.sh"
+
+#######################################
+# Volumes
+#######################################
+volumes:
+  gosrc:
+    driver: local
+    driver_opts:
+      type: bind
+      device: /home/nath/go/src
+      o: bind
+  gopkg:
+    driver: local
+    driver_opts:
+      type: bind
+      device: /home/nath/go/pkg
+      o: bind
+
+networks:
+  default:
+    external:
+      name: dev

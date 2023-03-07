@@ -1,0 +1,15 @@
+###
+# Docker image
+###
+ARG GO_VERSION=1.19
+
+#Base image is in https://registry.hub.docker.com/_/golang/
+#Refer to https://blog.golang.org/docker for usage
+FROM golang:${GO_VERSION}
+
+ENV GOPATH /go
+ENV GOBIN $GOPATH/bin
+
+RUN rm -f /etc/localtime \
+    && ln -s /usr/share/zoneinfo/Asia/Jakarta /etc/localtime \
+    && dpkg-reconfigure -f noninteractive tzdata

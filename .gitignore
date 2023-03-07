@@ -1,0 +1,8 @@
+.idea/
+.env
+/docker-compose.yml
+/common-services.yml
+/Dockerfile
+backup/
+./report.json
+report.json
