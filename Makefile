@@ -12,16 +12,16 @@ up:
 	start
 
 startdb:
-	docker-compose up -d mariadb
+	docker start dev_mariadb
 
 start:
-	docker-compose up -d mariadb app
+	docker start dev_mariadb && docker-compose up -d movebe
 
 recreate:
-	docker-compose -f docker-compose.local.yml up -d --force-recreate mariadb app
+	docker-compose -f docker-compose.local.yml up -d --force-recreate movebe
 
 stop:
-	docker-compose stop mariadb app
+	docker stop dev_mariadb && docker-compose stop movebe
 
 state:
 	docker-compose ps

@@ -6,7 +6,7 @@ services:
   movebe:
     extends:
       file: common-services.yml
-      service: go
+      service: go1.19
     container_name: go_movebe
     external_links:
       - dev_mariadb:mariadb
@@ -17,11 +17,24 @@ services:
     mem_limit: 200m
     networks:
       default:
-        ipv4_address: 172.18.0.99
+        ipv4_address: 172.18.0.121
     volumes:
-      - /home/nath/go/src/cmi_go_movebe:/go/src/cmi_go_movebe
-    working_dir: "/go/src/cmi_go_movebe"
-    entrypoint: "./run.sh"
+      - /home/nath/go/src/wwt_go_movebe:/go/src/wwt_go_movebe
+    working_dir: "/go/src/wwt_go_movebe"
+
+  codigribe:
+    image: go_codigribe
+    extra_hosts:
+      - "mariadb:172.18.0.4"
+    container_name: go_codigribe
+    environment:
+      VIRTUAL_HOST: "codigribe.vm"
+      VIRTUAL_PORT: "80"
+      ENV: "dev"
+    # Important to bind/mount your codebase dir to /app dir for live reload
+    volumes:
+      - /home/nath/go/src/wwt_go_movebe:/app
+    network_mode: "host"
 
 #######################################
 # Volumes
