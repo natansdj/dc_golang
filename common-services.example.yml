@@ -1,0 +1,25 @@
+version: '2.1'
+services:
+  go1.22:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: dc_golang:1.22
+    # cap and privileged needed for slowlog
+    cap_add:
+      - SYS_PTRACE
+    privileged: true
+    security_opt:
+      - apparmor=unconfined
+      - seccomp=unconfined
+    extra_hosts:
+      - "mariadb:172.18.0.52"
+      - "mongodb:172.18.0.55"
+      - "service:172.18.0.1"
+    environment:
+      TZ: "Asia/Jakarta"
+    mem_limit: 1g
+    volumes:
+      - ./:/docker/
+      - gopkg:/go/pkg/
+    entrypoint: "/docker/docker/golang/run.sh"

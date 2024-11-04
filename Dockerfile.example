@@ -1,7 +1,7 @@
 ###
 # Docker image
 ###
-ARG GO_VERSION=1.19
+ARG GO_VERSION=1.22-alpine
 
 #Base image is in https://registry.hub.docker.com/_/golang/
 #Refer to https://blog.golang.org/docker for usage

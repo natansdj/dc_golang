@@ -1,0 +1,130 @@
+services:
+  #######################################
+  # MariaDB server
+  #######################################
+  mariadb:
+    build:
+      context: docker/mariadb/
+      dockerfile: MariaDB-11.5.2.Dockerfile
+    image: pc_mariadb
+    container_name: pc_mariadb
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb:/var/lib/mysql
+      - ./etc/mariadb/z999-docker1.cnf:/etc/mysql/conf.d/z999-docker.cnf
+      - ./backup:/storage
+    env_file:
+      - etc/environment.yml
+    environment:
+      TZ: "Asia/Jakarta"
+    mem_limit: 1g
+    networks:
+      default:
+        ipv4_address: 172.18.0.52
+
+  mongodb:
+    image: "mongo:7.0.14-jammys"
+    container_name: pc_mongodb
+    volumes:
+      - mongodb:/data/db
+    ports:
+      - "27017:27017"
+    # restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    mem_limit: 400m
+    networks:
+      default:
+        ipv4_address: 172.18.0.55
+
+  #######################################
+  # KrakenD
+  #######################################
+  # krakend:
+  #   image: devopsfaith/krakend:config-watcher
+  #   # image: devopsfaith/krakend:2.0.6-config-watcher
+  #   # image: devopsfaith/krakend:2.3
+  #   container_name: ddc_krakend
+  #   ports:
+  #     - "8080:8080"
+  #   expose:
+  #     - "8090"
+  #     - "9091"
+  #   environment:
+  #     VIRTUAL_HOST: "api.ddc.vm"
+  #     VIRTUAL_PORT: "8080"
+  #     KRAKEND_CONFIG: "ddcApiGateway.json"
+  #     # KRAKEND_CONFIG: "krakend.json"
+  #     # FC_ENABLE: 1
+  #     # FC_SETTINGS: "./settings"
+  #     # FC_PARTIALS: "./partials"
+  #     # FC_TEMPLATES: "./partials"
+  #     # FC_OUT: "/etc/krakend/krakend.json"
+  #   mem_limit: 2g
+  #   volumes:
+  #     - ./:/docker/
+  #     - ../_htdocs_ddc/ddc_api_gateway:/etc/krakend
+  #   networks:
+  #     default:
+  #       ipv4_address: 172.18.0.59
+  #   extra_hosts:
+  #     - "service01:172.18.0.1"
+  #     - "service02:172.18.0.1"
+  #     - "servicestaging01:172.18.0.1"
+  #     - "servicestaging02:172.18.0.1"
+
+  #######################################
+  # GO Services
+  #######################################
+  # movebe:
+  #   extends:
+  #     file: common-services.yml
+  #     service: go1.22
+  #   container_name: go_movebe
+  #   external_links:
+  #     - dev_mariadb:mariadb
+  #   environment:
+  #     ENV: "dev"
+  #   mem_limit: 200m
+  #   networks:
+  #     default:
+  #       ipv4_address: 172.18.0.121
+  #   volumes:
+  #     - /Users/natan/go/src/paycloud-be-settlement-module:/go/src/paycloud-be-settlement-module
+  #   working_dir: "/go/src/paycloud-be-settlement-module"
+
+#######################################
+# Volumes
+#######################################
+volumes:
+  mariadb:
+    driver: local
+    driver_opts:
+      type: bind
+      device: /Users/natan/lxc/mariadb/db
+      o: bind
+  mongodb:
+    driver: local
+    driver_opts:
+      type: bind
+      device: /Users/natan/lxc/mongodata
+      o: bind
+  gosrc:
+    driver: local
+    driver_opts:
+      type: bind
+      device: /Users/natan/go/src
+      o: bind
+  gopkg:
+    driver: local
+    driver_opts:
+      type: bind
+      device: /Users/natan/go/pkg
+      o: bind
+
+networks:
+  default:
+    name: dev
+    external: true

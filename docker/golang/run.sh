@@ -31,7 +31,6 @@ echo "ENV : ${ENV}"
 
 echo "## go mod..."
 go mod download
-go mod vendor
 
 if [ -z "$DOCKER_UID" ]; then
   echo "## empty DOCKER_UID skip atribute update..."

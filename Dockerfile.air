@@ -1,5 +1,5 @@
 #!/usr/bin/env -S docker build . --tag=go_codigribe:v1 --network=host --file
-FROM golang:1.19-alpine
+FROM golang:1.22-alpine
 
 WORKDIR /app
 
