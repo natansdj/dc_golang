@@ -3,8 +3,8 @@
 #################################################
 ## Charset
 
-character-set-server=utf8
-collation-server=utf8_general_ci
+character-set-server=utf8mb4
+collation-server=utf8mb4_unicode_ci
 
 #################################################
 ## Buffers
@@ -43,8 +43,10 @@ query_cache_type  = 1
 #################################################
 ## Query log
 
+;log_output=FILE
 slow-query-log
-slow_query_log_file = /dev/stderr
+slow_query_log_file = /var/log/mysql/mariadb-slow.log
+;slow_query_log_file = /dev/stderr
 long_query_time     = 1
 ; log-queries-not-using-indexes
 
