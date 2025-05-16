@@ -112,7 +112,7 @@ services:
     mem_limit: 2g
     volumes:
       - ./:/docker/
-      - /Users/natan/Projects/_htdocs_pc/paycloud-apigateway:/etc/krakend
+      - /home/nath/Documents/paycloud_be/paycloud-apigateway:/etc/krakend
     # networks:
     #   default:
     #     ipv4_address: 172.18.0.59
@@ -149,7 +149,7 @@ services:
     #   default:
     #     ipv4_address: 172.18.0.121
     volumes:
-      - /Users/natan/go/src/paycloud-be-settlement-module:/go/src/paycloud-be-settlement-module
+      - /home/nath/go/src/paycloud-be-settlement-module:/go/src/paycloud-be-settlement-module
     working_dir: "/go/src/paycloud-be-settlement-module"
 
 #######################################
@@ -160,37 +160,37 @@ volumes:
     driver: local
     driver_opts:
       type: bind
-      device: /Users/natan/lxc/mariadb/db
+      device: /home/lxc/mariadb_pc/db
       o: bind
   mongodb:
     driver: local
     driver_opts:
       type: bind
-      device: /Users/natan/lxc/mongodata
+      device: /home/lxc/mongodata_pc
       o: bind
   gosrc:
     driver: local
     driver_opts:
       type: bind
-      device: /Users/natan/go/src
+      device: /home/nath/go/src
       o: bind
   gopkg:
     driver: local
     driver_opts:
       type: bind
-      device: /Users/natan/go/pkg
+      device: /home/nath/go/pkg
       o: bind
   rabbitmq-homedir:
     driver: local
     driver_opts:
       type: bind
-      device: /Users/natan/lxc/rabbitmq-homedir
+      device: /home/nath/lxc/rabbitmq-homedir
       o: bind
   redis:
     driver: local
     driver_opts:
       type: bind
-      device: /Users/natan/lxc/redis
+      device: /home/nath/lxc/redis_pc
       o: bind
 
 networks:
