@@ -12,16 +12,16 @@ up:
 	start
 
 startdb:
-	docker start dev_mariadb
+	docker-compose up -d mariadb
 
 start:
-	docker start dev_mariadb && docker-compose up -d movebe
+	docker-compose up -d mariadb mongodb redis rabbit
 
 recreate:
-	docker-compose -f docker-compose.local.yml up -d --force-recreate movebe
+	docker-compose -f docker-compose.local.yml up -d --force-recreate mariadb mongodb redis rabbit
 
 stop:
-	docker stop dev_mariadb && docker-compose stop movebe
+	docker-compose stop mariadb mongodb redis rabbit
 
 state:
 	docker-compose ps
