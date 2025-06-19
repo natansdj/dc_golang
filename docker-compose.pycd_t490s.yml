@@ -1,4 +1,4 @@
-version: "2"
+version: "3"
 services:
   #######################################
   # MariaDB server
@@ -90,12 +90,14 @@ services:
   # KrakenD
   #######################################
   krakend:
-    image: devopsfaith/krakend:2.7.2-watch
-    # image: devopsfaith/krakend:2.7.2
+    # image: devopsfaith/krakend:2.7.2-watch
+    # image: devopsfaith/krakend:2.9-watch
+    image: krakend:2.10
+    # image: pc_krakend:latest
     # build:
-    #   context: docker/krakend/
-    #   dockerfile: Krakend-2.7.2.Dockerfile
-    container_name: ddc_krakend
+      # context: docker/krakend/
+      # dockerfile: krakend-pc.Dockerfile
+    container_name: pc_krakend
     ports:
       - "8080:8080"
     expose:
@@ -104,13 +106,13 @@ services:
     environment:
       VIRTUAL_HOST: "api.paycloud.vm"
       VIRTUAL_PORT: "8080"
-      KRAKEND_CONFIG: "krakend.json"
       FC_ENABLE: 1
-      FC_SETTINGS: "./config/settings"
-      # FC_PARTIALS: "./partials"
-      FC_TEMPLATES: "./config/templates"
+      FC_SETTINGS: "/etc/krakend/config/settings"
+      FC_TEMPLATES: "/etc/krakend/config/templates"
       FC_OUT: "/etc/krakend/krakend.json"
-    mem_limit: 2g
+    # command: ["krakend", "run", "-c", "/etc/krakend/krakend.json"] # Command to run KrakenD with your config
+    # command: ["check", "-c", "/etc/krakend/config/krakend.tmpl"] # Use 'check' for validation, 'run' for production
+    mem_limit: 1g
     volumes:
       - ./:/docker/
       - /home/nath/Documents/paycloud_be/paycloud-apigateway:/etc/krakend
