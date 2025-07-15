@@ -10,7 +10,7 @@ services:
     container_name: pc_mariadb
     ports:
       - "3306:3306"
-    # restart: unless-stopped
+    restart: unless-stopped
     volumes:
       - mariadb:/var/lib/mysql
       - ./etc/mariadb/z999-docker1.cnf:/etc/mysql/conf.d/z999-docker.cnf
@@ -20,9 +20,9 @@ services:
     environment:
       TZ: "Asia/Jakarta"
     mem_limit: 1g
-    # networks:
-    #   default:
-    #     ipv4_address: 172.18.0.52
+    networks:
+      default:
+        ipv4_address: 172.18.0.52
 
   mongodb:
     image: "mongo:7.0.14-jammy"
@@ -31,14 +31,14 @@ services:
       - mongodb:/data/db
     ports:
       - "27017:27017"
-    # restart: unless-stopped
+    restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: root
     mem_limit: 400m
-    # networks:
-    #   default:
-    #     ipv4_address: 172.18.0.55
+    networks:
+      default:
+        ipv4_address: 172.18.0.55
 
   #######################################
   # Redis
@@ -46,15 +46,15 @@ services:
   redis:
     image: redis:alpine
     container_name: pc_redis
-    # networks:
-    #   default:
-    #     ipv4_address: 172.18.0.254
+    networks:
+      default:
+        ipv4_address: 172.18.0.254
     ports:
       - "6379:6379"
     volumes:
       - redis:/data
     mem_limit: 200m
-    # restart: unless-stopped
+    restart: unless-stopped
     environment:
       VIRTUAL_HOST: "redis.pc.vm"
       VIRTUAL_PORT: "80"
@@ -66,14 +66,14 @@ services:
     image: rabbitmq:3.13.0-management
     container_name: pc_rabbit
     hostname: pc_rabbit
-    # networks:
-    #   default:
-    #     ipv4_address: 172.18.0.253
+    networks:
+      default:
+        ipv4_address: 172.18.0.253
     ports:
       - "5672:5672"
       - "15672:15672"
     mem_limit: 300m
-    # restart: unless-stopped
+    restart: unless-stopped
     volumes:
       - ./etc/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins
       - rabbitmq-homedir:/var/lib/rabbitmq
@@ -94,63 +94,86 @@ services:
     # build:
     #   context: docker/krakend/
     #   dockerfile: Krakend-2.7.2.Dockerfile
-    container_name: ddc_krakend
+    container_name: pc_krakend
     ports:
-      - "8080:8080"
+      - "80:8000"
+      - "8000:8000"
     expose:
-      - "8090"
-      - "9091"
+      - "8000"
+      - "8080"
     environment:
       VIRTUAL_HOST: "api.paycloud.vm"
-      VIRTUAL_PORT: "8080"
-      KRAKEND_CONFIG: "krakend.json"
+      VIRTUAL_PORT: "8000"
+      KRAKEND_CONFIG: "./apigw.json"
       FC_ENABLE: 1
-      FC_SETTINGS: "./config/settings"
+      FC_SETTINGS: "/etc/krakend/config/settings"
       # FC_PARTIALS: "./partials"
-      FC_TEMPLATES: "./config/templates"
-      FC_OUT: "/etc/krakend/krakend.json"
-    mem_limit: 2g
+      FC_TEMPLATES: "/etc/krakend/config/templates"
+      FC_OUT: "apigw.json"
+    command: ["run","-dc","config/krakend.tmpl"]
+    mem_limit: 500m
     volumes:
       - ./:/docker/
       - /Users/natan/Projects/_htdocs_pc/paycloud-apigateway:/etc/krakend
-    # networks:
-    #   default:
-    #     ipv4_address: 172.18.0.59
     extra_hosts:
-      - "service01:172.18.0.1"
-      - "service02:172.18.0.1"
-      - "servicestaging01:172.18.0.1"
-      - "servicestaging02:172.18.0.1"
+      - "paycloud-be-createordersnap-manager:127.0.0.1"
 
   #######################################
   # GO Services
   #######################################
-  settlement-module:
-    extends:
-      file: common-services.yml
-      service: go1.22
-    container_name: go_pc_1.22
-    external_links:
-      - pc_mariadb:mariadb
-    environment:
-      ENV: "dev"
-      GO_SVC: "paycloud-be-settlement-module"
-    mem_limit: 200m
-    depends_on:
-      mariadb:
-        condition: service_started
-        restart: true
-      redis:
-        condition: service_started
-        restart: true
-      rabbit:
-        condition: service_started
-    # networks:
-    #   default:
-    #     ipv4_address: 172.18.0.121
-    volumes:
-      - /Users/natan/go/src/paycloud-be-settlement-module:/go/src/paycloud-be-settlement-module
-    working_dir: "/go/src/paycloud-be-settlement-module"
+#  config-module:
+#    extends:
+#      file: common-services.yml
+#      service: go1.22
+#    container_name: go_pc_1.22
+#    external_links:
+#      - pc_mariadb:mariadb
+#    environment:
+#      ENV: "dev"
+#      GO_SVC: "paycloud-be-config-module"
+#    mem_limit: 200m
+#    depends_on:
+#      mariadb:
+#        condition: service_started
+#        restart: true
+#      redis:
+#        condition: service_started
+#        restart: true
+#      rabbit:
+#        condition: service_started
+#    networks:
+#      default:
+#        ipv4_address: 172.18.0.1
+#    volumes:
+#      - /Users/natan/go/src/paycloud-be-config-module:/go/src/paycloud-be-config-module
+#    working_dir: "/go/src/paycloud-be-config-module"
+
+  # settlement-module:
+  #   extends:
+  #     file: common-services.yml
+  #     service: go1.22
+  #   container_name: go_pc_1.22
+  #   external_links:
+  #     - pc_mariadb:mariadb
+  #   environment:
+  #     ENV: "dev"
+  #     GO_SVC: "paycloud-be-settlement-module"
+  #   mem_limit: 200m
+  #   depends_on:
+  #     mariadb:
+  #       condition: service_started
+  #       restart: true
+  #     redis:
+  #       condition: service_started
+  #       restart: true
+  #     rabbit:
+  #       condition: service_started
+  #   # networks:
+  #   #   default:
+  #   #     ipv4_address: 172.18.0.121
+  #   volumes:
+  #     - /Users/natan/go/src/paycloud-be-settlement-module:/go/src/paycloud-be-settlement-module
+  #   working_dir: "/go/src/paycloud-be-settlement-module"
 
 #######################################
 # Volumes
@@ -160,13 +183,13 @@ volumes:
     driver: local
     driver_opts:
       type: bind
-      device: /Users/natan/lxc/mariadb/db
+      device: /Users/natan/lxc/mariadb_pc/db
       o: bind
   mongodb:
     driver: local
     driver_opts:
       type: bind
-      device: /Users/natan/lxc/mongodata
+      device: /Users/natan/lxc/mongodata_pc
       o: bind
   gosrc:
     driver: local
