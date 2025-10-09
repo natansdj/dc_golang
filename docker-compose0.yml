@@ -13,15 +13,15 @@ services:
       - "3306:3306"
     restart: unless-stopped
     volumes:
-      # - mariadb:/var/lib/mysql
-      - mariadb-data:/var/lib/mysql
+      - mariadb:/var/lib/mysql
+      # - mariadb-data:/var/lib/mysql
       - ./etc/mariadb/z999-docker2.cnf:/etc/mysql/conf.d/z999-docker.cnf  # Temporarily disabled
       - ./backup:/storage
     env_file:
       - etc/environment.yml
     environment:
-      MARIADB_ROOT_PASSWORD: "root"
-      MARIADB_AUTO_UPGRADE: "1"
+      # MARIADB_ROOT_PASSWORD: "root"
+      # MARIADB_AUTO_UPGRADE: "1"
       TZ: "Asia/Jakarta"
     mem_limit: 1g
     networks:
