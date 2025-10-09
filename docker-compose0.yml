@@ -3,21 +3,25 @@ services:
   # MariaDB server
   #######################################
   mariadb:
-    build:
-      context: docker/mariadb/
-      dockerfile: MariaDB-11.5.2.Dockerfile
-    image: pc_mariadb
+#    build:
+#      context: docker/mariadb/
+#      dockerfile: MariaDB-11.8.3.Dockerfile
+#    image: pc_mariadb
+    image: mariadb:11.8.3  # Use official image directly
     container_name: pc_mariadb
     ports:
       - "3306:3306"
     restart: unless-stopped
     volumes:
-      - mariadb:/var/lib/mysql
-      - ./etc/mariadb/z999-docker1.cnf:/etc/mysql/conf.d/z999-docker.cnf
+      # - mariadb:/var/lib/mysql
+      - mariadb-data:/var/lib/mysql
+      - ./etc/mariadb/z999-docker2.cnf:/etc/mysql/conf.d/z999-docker.cnf  # Temporarily disabled
       - ./backup:/storage
     env_file:
       - etc/environment.yml
     environment:
+      MARIADB_ROOT_PASSWORD: "root"
+      MARIADB_AUTO_UPGRADE: "1"
       TZ: "Asia/Jakarta"
     mem_limit: 1g
     networks:
@@ -96,24 +100,29 @@ services:
     #   dockerfile: Krakend-2.7.2.Dockerfile
     container_name: pc_krakend
     ports:
+      - "80:8000"
       - "8080:8080"
     expose:
-      - "8090"
-      - "9091"
+      - "8000"
+      - "8080"
     environment:
       VIRTUAL_HOST: "api.paycloud.vm"
-      VIRTUAL_PORT: "8080"
-      KRAKEND_CONFIG: "./apigw.json"
+      VIRTUAL_PORT: "8000"
+      KRAKEND_CONFIG: "./krakend.json"
       FC_ENABLE: 1
       FC_SETTINGS: "/etc/krakend/config/settings"
       # FC_PARTIALS: "./partials"
       FC_TEMPLATES: "/etc/krakend/config/templates"
-      FC_OUT: "apigw.json"
+      FC_OUT: "krakend.json"
     command: ["run","-dc","config/krakend.tmpl"]
     mem_limit: 500m
+    network_mode: host
     volumes:
       - ./:/docker/
       - /Users/natan/Projects/_htdocs_pc/paycloud-apigateway:/etc/krakend
+    extra_hosts:
+      - "paycloud-be-createordersnap-manager:127.0.0.1"
+      - "paycloud-be-qoinhubinterface-manager:127.0.0.1"
 
   #######################################
   # GO Services
@@ -182,6 +191,8 @@ volumes:
       type: bind
       device: /Users/natan/lxc/mariadb_pc/db
       o: bind
+  mariadb-data:
+    driver: local
   mongodb:
     driver: local
     driver_opts:

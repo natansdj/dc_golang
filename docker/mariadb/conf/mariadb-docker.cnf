@@ -1,0 +1,104 @@
+[mysqld]
+#################################################
+## Charset & Case Sensitivity
+character-set-server=utf8mb4
+collation-server=utf8mb4_unicode_ci
+
+# IMPORTANT: Preserve camelCase table names
+# 0 = case-sensitive (Linux/case-sensitive FS only)
+# 1 = case-insensitive, stored as lowercase (converts all to lowercase - AVOID)
+# 2 = case-sensitive on creation, case-insensitive on lookup (macOS/Windows)
+# Use 2 for macOS/Windows to preserve camelCase while working on case-insensitive FS
+lower_case_table_names=2
+
+#################################################
+## InnoDB Settings (Primary Storage Engine)
+innodb_buffer_pool_size         = 512M          # Increased for dev performance
+innodb_log_file_size            = 128M          # Larger for better write performance
+innodb_log_buffer_size          = 16M           # Increased from 10M
+innodb_flush_log_at_trx_commit  = 2             # Faster for dev (trades durability for speed)
+
+#################################################
+## Memory Buffers
+key_buffer_size                 = 128M          # Reduced (mainly for MyISAM)
+tmp_table_size                  = 256M          # Increased for complex queries
+max_heap_table_size             = 256M          # Match tmp_table_size
+read_buffer_size                = 2M            # Per-connection buffer
+read_rnd_buffer_size            = 4M            # For sorted reads
+sort_buffer_size                = 4M            # For ORDER BY/GROUP BY
+join_buffer_size                = 4M            # For joins without indexes
+
+#################################################
+## Connections
+max_connections                 = 150           # Good for development
+max_allowed_packet              = 64M           # Increased for larger queries/imports
+connect_timeout                 = 10
+wait_timeout                    = 600           # 10 minutes
+interactive_timeout             = 600
+thread_cache_size               = 16            # Cache threads for reuse
+open_files_limit                = 4096          # Increased from 2048
+
+#################################################
+## Transaction Isolation
+transaction-isolation           = READ-COMMITTED # Better performance than REPEATABLE-READ
+                                                 # Change to REPEATABLE-READ if needed for your app
+
+#################################################
+## Binary Logging (Optional for Development)
+# Uncomment if you need point-in-time recovery or replication testing
+# log_bin                       = /var/log/mysql/mariadb-bin.log
+# expire_logs_days              = 3
+# max_binlog_size               = 100M
+# binlog_format                 = ROW
+
+#################################################
+## Query Logging
+log_output                      = FILE
+slow_query_log                  = 1
+slow_query_log_file             = /var/log/mysql/mariadb-slow.log
+long_query_time                 = 2             # Log queries taking >2 seconds
+log_queries_not_using_indexes   = 1             # Helpful for dev optimization
+
+# General query log (very verbose - enable only when debugging)
+# general_log                   = 1
+# general_log_file              = /var/log/mysql/mariadb-query.log
+
+#################################################
+## SQL Mode (Important for Development)
+# Strict mode for catching errors early
+sql_mode                        = STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
+
+#################################################
+## Performance & Optimization
+table_open_cache                = 400           # Cache for open tables
+table_definition_cache          = 400           # Cache for table definitions
+optimizer_search_depth          = 10            # Query optimization depth
+
+# Temporary tables - MariaDB 11.x uses Aria by default
+aria_pagecache_buffer_size      = 128M          # For Aria temp tables
+
+#################################################
+## Fast Data Import
+local_infile                    = 1             # Allow LOAD DATA LOCAL INFILE
+bulk_insert_buffer_size         = 16M           # For INSERT ... VALUES()
+
+#################################################
+## Security (Development Settings)
+# For production, review these carefully
+skip_name_resolve               = 1             # Skip DNS lookups for faster connections
+
+[mysql]
+default-character-set           = utf8mb4
+
+[client]
+default-character-set           = utf8mb4
+port                            = 3306
+socket                          = /var/run/mysqld/mysqld.sock
+
+[mysqldump]
+quick
+quote-names
+max_allowed_packet              = 64M
+
+[isamchk]
+key_buffer_size                 = 128M
