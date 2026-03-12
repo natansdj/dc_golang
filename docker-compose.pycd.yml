@@ -3,21 +3,25 @@ services:
   # MariaDB server
   #######################################
   mariadb:
-    build:
-      context: docker/mariadb/
-      dockerfile: MariaDB-11.5.2.Dockerfile
-    image: pc_mariadb
+#    build:
+#      context: docker/mariadb/
+#      dockerfile: MariaDB-11.8.3.Dockerfile
+#    image: pc_mariadb
+    image: mariadb:11.8.3  # Use official image directly
     container_name: pc_mariadb
     ports:
       - "3306:3306"
     restart: unless-stopped
     volumes:
       - mariadb:/var/lib/mysql
-      - ./etc/mariadb/z999-docker1.cnf:/etc/mysql/conf.d/z999-docker.cnf
+      # - mariadb-data:/var/lib/mysql
+      - ./etc/mariadb/z999-docker2.cnf:/etc/mysql/conf.d/z999-docker.cnf  # Temporarily disabled
       - ./backup:/storage
     env_file:
       - etc/environment.yml
     environment:
+      MARIADB_ROOT_PASSWORD: "root"
+      MARIADB_AUTO_UPGRADE: "1"
       TZ: "Asia/Jakarta"
     mem_limit: 1g
     networks:
@@ -187,6 +191,8 @@ volumes:
       type: bind
       device: /Users/natan/lxc/mariadb_pc/db
       o: bind
+  mariadb-data:
+    driver: local
   mongodb:
     driver: local
     driver_opts:
