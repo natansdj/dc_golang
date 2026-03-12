@@ -45,6 +45,26 @@ services:
         ipv4_address: 172.18.0.55
 
   #######################################
+  # PostgreSQL
+  #######################################
+  postgres:
+    image: postgres:16
+    container_name: pc_postgres
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    volumes:
+      - postgres:/var/lib/postgresql/data
+      - ./etc/postgresql/init:/docker-entrypoint-initdb.d:ro
+    environment:
+      POSTGRES_PASSWORD: "root"
+      TZ: "Asia/Jakarta"
+    mem_limit: 400m
+    networks:
+      default:
+        ipv4_address: 172.18.0.56
+
+  #######################################
   # Redis
   #######################################
   redis:
@@ -222,6 +242,12 @@ volumes:
     driver_opts:
       type: bind
       device: /Users/natan/lxc/redis
+      o: bind
+  postgres:
+    driver: local
+    driver_opts:
+      type: bind
+      device: /Users/natan/lxc/postgres
       o: bind
 
 networks:
