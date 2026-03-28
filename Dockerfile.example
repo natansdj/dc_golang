@@ -1,15 +1,102 @@
 ###
-# Docker image
+# Dockerfile.example - Advanced Go Service Multi-Stage Build
+# Latest stable Go version with optimized production image
+#
+# This example demonstrates best practices for production Go services:
+# - Multi-stage builds for minimal image size
+# - Non-root user for security
+# - Comprehensive health checks
+# - Optimized dependency caching
+#
+# Build: docker build -f Dockerfile.example --build-arg GO_VERSION=1.24 \
+#        --build-arg SERVICE_NAME=paycloud-be-settlement-module \
+#        -t pc-service:latest .
 ###
+
+# === BUILD STAGE ===
 ARG GO_VERSION=1.24-alpine
+FROM golang:${GO_VERSION} AS builder
 
-#Base image is in https://registry.hub.docker.com/_/golang/
-#Refer to https://blog.golang.org/docker for usage
-FROM golang:${GO_VERSION}
+# Build arguments
+ARG SERVICE_NAME=paycloud-be-service
+ARG SERVICE_VERSION=latest
+ARG GIT_COMMIT=unknown
+ARG BUILD_DATE
+ARG GOPROXY=https://proxy.golang.org,direct
 
-ENV GOPATH /go
-ENV GOBIN $GOPATH/bin
+# Build environment variables
+ENV CGO_ENABLED=1 \
+    GOOS=linux \
+    GOARCH=amd64 \
+    GOPROXY=${GOPROXY}
 
-RUN rm -f /etc/localtime \
-    && ln -s /usr/share/zoneinfo/Asia/Jakarta /etc/localtime \
-    && dpkg-reconfigure -f noninteractive tzdata
+# Install build dependencies
+RUN apk add --no-cache \
+    git \
+    make \
+    bash \
+    ca-certificates \
+    curl \
+    postgresql-dev \
+    mysql-dev
+
+WORKDIR /build
+
+# Copy go mod files (better layer caching)
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy source code
+COPY . .
+
+# Build application with version information
+RUN go build \
+    -ldflags="-X main.Version=${SERVICE_VERSION} -X main.GitCommit=${GIT_COMMIT} -X main.BuildDate=${BUILD_DATE}" \
+    -o /build/app .
+
+# === RUNTIME STAGE ===
+FROM alpine:latest
+
+# Image labels
+LABEL maintainer="PayCloud DevOps Team" \
+      description="Lightweight Go service runtime image" \
+      version="${SERVICE_VERSION}"
+
+# Install runtime dependencies only (minimal image)
+RUN apk add --no-cache \
+    ca-certificates \
+    tzdata \
+    curl \
+    bash \
+    postgresql-client \
+    mysql-client \
+    tini
+
+# Create application user (non-root)
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup && \
+    mkdir -p /var/log/app && \
+    chown -R appuser:appgroup /var/log/app
+
+# Set timezone
+ENV TZ=Asia/Jakarta
+RUN rm -f /etc/localtime && \
+    ln -s /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
+
+# Copy binary from builder
+COPY --from=builder --chown=appuser:appgroup /build/app /app/
+
+# Change to app user
+USER appuser
+
+# Expose port (override in docker-compose or k8s)
+EXPOSE 8080 9090
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Use tini to handle signals properly
+ENTRYPOINT ["/sbin/tini", "--"]
+
+# Default command (override in docker-compose or k8s)
+CMD ["/app/app"]
