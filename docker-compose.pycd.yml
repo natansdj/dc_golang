@@ -65,10 +65,10 @@ services:
         ipv4_address: 172.18.0.56
 
   #######################################
-  # Temporal Server (1.30.1)
+  # Temporal Server (1.29.4)
   #######################################
   temporal:
-    image: temporalio/server:1.30.1
+    image: temporalio/auto-setup:1.29.4
     container_name: pc_temporal
     restart: unless-stopped
     ports:
@@ -80,16 +80,16 @@ services:
       - "6939:6939"
       - "9090:9090"
     environment:
-      - DB=postgresql
+      - DB=postgres12
+      - DB_PORT=5432
       - POSTGRES_SEEDS=pc_postgres
-      - POSTGRES_PORT=5432
-      - POSTGRES_USER=temporal
-      - POSTGRES_PASSWORD=temporal
-      - POSTGRES_DB=temporal
+      - POSTGRES_USER=postgres
+      - POSTGRES_PWD=root
+      - DBNAME=temporal
+      - VISIBILITY_DBNAME=temporal_visibility
       - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
       - ENABLE_ES=false
       - LOG_LEVEL=info
-      - TEMPORAL_ADDRESS=0.0.0.0:7233
       - TZ=Asia/Jakarta
     volumes:
       - ./etc/temporal/dynamic.yaml:/etc/temporal/config/dynamicconfig/development-sql.yaml:ro
@@ -101,13 +101,13 @@ services:
       default:
         ipv4_address: 172.18.0.54
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7233/health"]
+      test: ["CMD-SHELL", "temporal operator cluster health --address $$(hostname -i | awk '{print $$1}'):7233 >/dev/null 2>&1"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   #######################################
-  # Temporal UI (2.47.2)
+  # Temporal UI
   #######################################
   temporal-ui:
     image: temporalio/ui:2.47.2

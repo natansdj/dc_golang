@@ -2,12 +2,13 @@
 
 ## Overview
 
-This directory contains configuration files for Temporal Server 1.30.1 and Temporal UI 2.47.2 integrated into the PayCloud development environment.
+This directory contains configuration files for Temporal Server 1.29.4 (auto-setup image) and Temporal UI 2.47.2 integrated into the PayCloud development environment.
 
 ## Services
 
-### Temporal Server (1.30.1)
+### Temporal Server (1.29.4)
 - **Container**: `pc_temporal`
+- **Image**: `temporalio/auto-setup:1.29.4`
 - **Port**: 7233 (gRPC)
 - **Additional Ports**:
   - 6933: Frontend gRPC
@@ -17,7 +18,7 @@ This directory contains configuration files for Temporal Server 1.30.1 and Tempo
   - 6939: Frontend HTTP
   - 9090: Metrics (Prometheus)
 - **Address**: `temporal:7233`
-- **Backend**: PostgreSQL (pc_postgres)
+- **Backend**: PostgreSQL 16 (pc_postgres)
 
 ### Temporal UI (2.47.2)
 - **Container**: `pc_temporal_ui`
@@ -27,7 +28,7 @@ This directory contains configuration files for Temporal Server 1.30.1 and Tempo
 
 ## Files
 
-- `dynamic.yaml` - Temporal server dynamic configuration (namespaces, retention, limits)
+- `dynamic.yaml` - Temporal dynamic config key/value overrides
 - `temporal.env` - Environment variables for Temporal configuration
 - `init-postgres.sh` - PostgreSQL initialization script for Temporal database
 

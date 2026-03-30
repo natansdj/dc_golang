@@ -1,59 +1,6 @@
-################################################################################
-# Temporal Server Dynamic Configuration
-# This file is optional and defines default values for dynamic config fetcher.
-################################################################################
+# Temporal dynamic config must be a map of dynamic keys to constrained values.
+# Each key maps to a list of entries with `value` and optional `constraints`.
 
-defaults:
-  # Visibility database is per namespace, change this to increase GRPC server requests parallelism  
-  visibilityFetchMaxReadDBRows: 1000
-  historyMaxPageSize: 1000
-  workflowMaxPageSize: 1000
-
-pdProperties: {}
-
-################################################################################
-# System-wide settings
-################################################################################
-
-system:
-  overrides:
-    # Timeout for acquiring a shard read lock
-    matching.longPollExpirationInterval: 20s
-    
-################################################################################
-# Namespaces configuration
-################################################################################
-
-namespaces:
-  default:
-    retention: 24h
-    historyArchivalState: "Disabled"
-    visibilityArchivalState: "Disabled"
-  
-  # Development namespace
-  dev:
-    retention: 720h  # 30 days for development
-    historyArchivalState: "Disabled"
-    visibilityArchivalState: "Disabled"
-
-################################################################################
-# Limits and thresholds
-################################################################################
-
-limits:
-  # Maximum number of concurrent requests to the same namespace
-  namespaceMaxConcurrentOperations: 10000
-  
-  # Maximum number of concurrent workflow starts from the same namespace
-  namespaceMaxConcurrentWorkflowTaskExecutionSize: 10000
-  
-  # Maximum number of concurrent activity task executions from the same namespace
-  namespaceMaxConcurrentActivityTaskExecutionSize: 10000
-
-################################################################################
-# Visibility configuration
-################################################################################
-
-visibility:
-  # Use PostgreSQL visibility store
-  defaultStore: postgresql
+matching.longPollExpirationInterval:
+  - value: "20s"
+    constraints: {}
