@@ -1,31 +1,58 @@
+---
+description: Validation commands and regression checks for dc_golang compose and script changes.
+applyTo: '**/docker-compose*.yml, **/scripts/*.sh, **/docker/**/*.sh'
+---
+
 # Testing and Validation
 
 ## Compose Validation
+
 Before committing compose changes:
+
 1. Validate syntax and interpolation:
-   - `docker-compose -f docker-compose.yml config -q`
-   - For variant edits, validate the edited file similarly.
+   - `make config` (uses active `COMPOSE_FILE`)
+   - `make config COMPOSE_FILE=docker-compose.pycd.yml` for variant edits
 2. Verify service graph:
-   - `docker-compose -f <compose-file> ps`
+   - `make ps`
 3. Check targeted logs after startup:
-   - `docker-compose -f <compose-file> logs --tail=100 <service>`
+   - `make logs S=<service>`
 
 ## Script Validation
+
 For changes under `scripts/` or `docker/`:
+
 - Run help and argument checks:
   - `./scripts/import-db.sh --help`
   - `./scripts/quick-import.sh` (expect usage output)
-- Validate happy path prerequisites before import tests:
-  - `docker-compose up -d mariadb`
+  - `./scripts/list-db-files.sh` (expect SQL file listing)
+- Validate happy-path prerequisites before import tests:
+  - `make startdb`
   - `docker ps | grep pc_mariadb`
 
+## Temporal Validation
+
+After changes that affect Temporal or PostgreSQL:
+
+```bash
+make verify-temporal          # Layout and connection checks
+make up-stack                 # Bring up Temporal + deps; watch logs
+make logs S=temporal          # Confirm no startup errors
+make logs S=temporal-ui       # Confirm UI is reachable
+```
+
+Access Temporal UI at: `http://localhost:8081`
+
 ## Regression Guardrails
-- Keep container names stable when referenced by scripts (`pc_mariadb`, etc.).
-- If changing env variable names in compose, update scripts/docs that depend on them.
-- When adding new automation scripts, include `--help` usage output and explicit failure messages.
+
+- Keep container names stable when referenced by scripts (`pc_mariadb`, `pc_postgres`, etc.).
+- If changing env variable names in compose, update scripts and docs that depend on them.
+- When adding new scripts, include `--help` usage output and explicit failure messages.
 
 ## Documentation Updates
+
 Update these docs when workflows change:
+
 - `AGENTS.md`
 - `.agents/rules/project-context.md`
-- `scripts/README.md` when import behavior changes
+- `scripts/README.md` when import behaviour changes
+- `QUICK_REFERENCE.md` when Temporal setup changes
