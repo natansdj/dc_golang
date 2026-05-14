@@ -171,8 +171,9 @@ services:
     environment:
       RABBITMQ_ERLANG_COOKIE: "RABBITCOOKIE"
       RABBITMQ_NODENAME: "rabbit@pc_rabbit"
-      RABBITMQ_DEFAULT_USER: "dev"
-      RABBITMQ_DEFAULT_PASS: "secret"
+      RABBITMQ_DEFAULT_USER: "usrqpg"
+      RABBITMQ_DEFAULT_PASS: "usrqpg"
+      RABBITMQ_DEFAULT_VHOST: "qpg"
       VIRTUAL_HOST: "rabbit.pc.vm"
       VIRTUAL_PORT: "15672"
 
@@ -187,86 +188,195 @@ services:
     #   dockerfile: Krakend-2.7.2.Dockerfile
     container_name: pc_krakend
     ports:
-      - "80:8000"
-      - "8080:8080"
-    expose:
-      - "8000"
-      - "8080"
-    environment:
-      VIRTUAL_HOST: "api.paycloud.vm"
-      VIRTUAL_PORT: "8000"
-      KRAKEND_CONFIG: "./krakend.json"
-      FC_ENABLE: 1
-      FC_SETTINGS: "/etc/krakend/config/settings"
-      # FC_PARTIALS: "./partials"
-      FC_TEMPLATES: "/etc/krakend/config/templates"
-      FC_OUT: "krakend.json"
+      - "30001:30001"
+      - "8090:8090"
+      - "9092:9092"
+    env_file:
+      - /Users/natan/Projects/_htdocs_pc/paycloud-apigateway/.env
     command: ["run","-dc","config/krakend.tmpl"]
+    working_dir: /etc/krakend
     mem_limit: 500m
-    network_mode: host
+    depends_on:
+      - createordersnap-manager
+      - callback-manager
+      - config-module
+      - merchantpg-module
+      - transaction-module
+      - paydiainterface-manager
+      - qoinhubinterface-manager
     volumes:
-      - ./:/docker/
       - /Users/natan/Projects/_htdocs_pc/paycloud-apigateway:/etc/krakend
-    extra_hosts:
-      - "paycloud-be-createordersnap-manager:127.0.0.1"
-      - "paycloud-be-qoinhubinterface-manager:127.0.0.1"
 
   #######################################
   # GO Services
   #######################################
-#  config-module:
-#    extends:
-#      file: common-services.yml
-#      service: go1.22
-#    container_name: go_pc_1.22
-#    external_links:
-#      - pc_mariadb:mariadb
-#    environment:
-#      ENV: "dev"
-#      GO_SVC: "paycloud-be-config-module"
-#    mem_limit: 200m
-#    depends_on:
-#      mariadb:
-#        condition: service_started
-#        restart: true
-#      redis:
-#        condition: service_started
-#        restart: true
-#      rabbit:
-#        condition: service_started
-#    networks:
-#      default:
-#        ipv4_address: 172.18.0.1
-#    volumes:
-#      - /Users/natan/go/src/paycloud-be-config-module:/go/src/paycloud-be-config-module
-#    working_dir: "/go/src/paycloud-be-config-module"
+  config-module:
+    extends:
+      file: common-services.yml
+      service: go1.22
+    container_name: pjp-be-config-module
+    env_file:
+      - /Users/natan/go/src/paycloud-be-config-module/.env
+    depends_on:
+      - mariadb
+      - redis
+      - rabbit
+    ports:
+      - "3010:3010"
+      - "9108:9108"
+    volumes:
+      - /Users/natan/go/src/paycloud-be-config-module:/go/src/paycloud-be-config-module
+    working_dir: "/go/src/paycloud-be-config-module"
 
-  # settlement-module:
-  #   extends:
-  #     file: common-services.yml
-  #     service: go1.22
-  #   container_name: go_pc_1.22
-  #   external_links:
-  #     - pc_mariadb:mariadb
-  #   environment:
-  #     ENV: "dev"
-  #     GO_SVC: "paycloud-be-settlement-module"
-  #   mem_limit: 200m
-  #   depends_on:
-  #     mariadb:
-  #       condition: service_started
-  #       restart: true
-  #     redis:
-  #       condition: service_started
-  #       restart: true
-  #     rabbit:
-  #       condition: service_started
-  #   # networks:
-  #   #   default:
-  #   #     ipv4_address: 172.18.0.121
-  #   volumes:
-  #     - /Users/natan/go/src/paycloud-be-settlement-module:/go/src/paycloud-be-settlement-module
-  #   working_dir: "/go/src/paycloud-be-settlement-module"
+  merchantpg-module:
+    extends:
+      file: common-services.yml
+      service: go1.22
+    container_name: pjp-be-merchantpg-module
+    env_file:
+      - /Users/natan/go/src/paycloud-be-merchantpg-module/.env
+    depends_on:
+      - mariadb
+      - mongodb
+      - redis
+      - rabbit
+      - config-module
+    ports:
+      - "3011:3011"
+      - "9107:9107"
+    volumes:
+      - /Users/natan/go/src/paycloud-be-merchantpg-module:/go/src/paycloud-be-merchantpg-module
+    working_dir: "/go/src/paycloud-be-merchantpg-module"
+
+  transaction-module:
+    extends:
+      file: common-services.yml
+      service: go1.22
+    container_name: pjp-be-transaction-module
+    env_file:
+      - /Users/natan/go/src/paycloud-be-transaction-module/.env
+    depends_on:
+      - mariadb
+      - mongodb
+      - redis
+      - rabbit
+      - temporal
+      - config-module
+      - merchantpg-module
+    ports:
+      - "2317:2317"
+      - "9106:9106"
+    volumes:
+      - /Users/natan/go/src/paycloud-be-transaction-module:/go/src/paycloud-be-transaction-module
+    working_dir: "/go/src/paycloud-be-transaction-module"
+
+  createordersnap-manager:
+    extends:
+      file: common-services.yml
+      service: go1.22
+    container_name: pjp-be-createordersnap-manager
+    env_file:
+      - /Users/natan/go/src/paycloud-be-createordersnap-manager/.env
+    depends_on:
+      - transaction-module
+      - merchantpg-module
+      - config-module
+      - redis
+      - rabbit
+    ports:
+      - "2323:2323"
+    volumes:
+      - /Users/natan/go/src/paycloud-be-createordersnap-manager:/go/src/paycloud-be-createordersnap-manager
+    working_dir: "/go/src/paycloud-be-createordersnap-manager"
+
+  callback-manager:
+    extends:
+      file: common-services.yml
+      service: go1.22
+    container_name: pjp-be-callback-manager
+    env_file:
+      - /Users/natan/go/src/paycloud-be-callback-manager/.env
+    depends_on:
+      - transaction-module
+      - merchantpg-module
+      - config-module
+      - redis
+      - rabbit
+      - temporal
+    ports:
+      - "3015:3015"
+    volumes:
+      - /Users/natan/go/src/paycloud-be-callback-manager:/go/src/paycloud-be-callback-manager
+    working_dir: "/go/src/paycloud-be-callback-manager"
+
+  paydiainterface-manager:
+    extends:
+      file: common-services.yml
+      service: go1.22
+    container_name: pjp-be-paydiainterface-manager
+    env_file:
+      - /Users/natan/go/src/paycloud-be-paydiainterface-manager/.env
+    depends_on:
+      - transaction-module
+      - merchantpg-module
+      - config-module
+      - redis
+      - rabbit
+    ports:
+      - "2346:2346"
+    volumes:
+      - /Users/natan/go/src/paycloud-be-paydiainterface-manager:/go/src/paycloud-be-paydiainterface-manager
+    working_dir: "/go/src/paycloud-be-paydiainterface-manager"
+
+  qoinhubinterface-manager:
+    extends:
+      file: common-services.yml
+      service: go1.22
+    container_name: pjp-be-qoinhubinterface-manager
+    env_file:
+      - /Users/natan/go/src/paycloud-be-qoinhubinterface-manager/.env
+    depends_on:
+      - transaction-module
+      - merchantpg-module
+      - config-module
+      - redis
+      - rabbit
+    ports:
+      - "2333:2333"
+    volumes:
+      - /Users/natan/go/src/paycloud-be-qoinhubinterface-manager:/go/src/paycloud-be-qoinhubinterface-manager
+    working_dir: "/go/src/paycloud-be-qoinhubinterface-manager"
+
+  audittrail-module:
+    extends:
+      file: common-services.yml
+      service: go1.22
+    container_name: pjp-be-audittrail-module
+    env_file:
+      - /Users/natan/go/src/paycloud-be-audittrail-module/.env
+    depends_on:
+      - rabbit
+      - mongodb
+    volumes:
+      - /Users/natan/go/src/paycloud-be-audittrail-module:/go/src/paycloud-be-audittrail-module
+    working_dir: "/go/src/paycloud-be-audittrail-module"
+
+  workflow:
+    extends:
+      file: common-services.yml
+      service: go1.22
+    container_name: pjp-be-workflow
+    env_file:
+      - /Users/natan/go/src/paycloud-be-workflow/.env
+    depends_on:
+      - temporal
+      - redis
+    ports:
+      - "7234:7234"
+      - "50050:50050"
+    volumes:
+      - /Users/natan/go/src/paycloud-be-workflow:/go/src/paycloud-be-workflow
+    working_dir: "/go/src/paycloud-be-workflow"
 
 #######################################
 # Volumes
