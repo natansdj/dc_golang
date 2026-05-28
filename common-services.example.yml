@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: pc_golang:1.22
+    image: dc_golang:1.25
     # cap and privileged needed for slowlog
     cap_add:
       - SYS_PTRACE
@@ -13,35 +13,20 @@ services:
       - apparmor=unconfined
       - seccomp=unconfined
     extra_hosts:
-      - "mariadb:172.18.0.52"
-      - "mongodb:172.18.0.55"
-      - "service:172.18.0.1"
+      - "pc_rabbit:172.18.0.253"
+      - "pc_redis:172.18.0.254"
+      - "pjp-be-transaction-module:172.18.0.1"
+      - "pjp-be-settlementpg-module:172.18.0.1"
+      - "pjp-be-merchantpg-module:172.18.0.1"
+      - "pjp-be-config-module:172.18.0.1"
+      - "pjp-be-messaging-module:172.18.0.1"
+      - "pjp-be-dashboard-module:172.18.0.1"
+      - "pjp-be-withdrawal-module:172.18.0.1"
     environment:
       TZ: "Asia/Jakarta"
     mem_limit: 1g
-    volumes:
-      - ./:/docker/
-      - gopkg:/go/pkg/
-    entrypoint: "/docker/docker/golang/run.sh"
-  go1.24:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: pc_golang:1.24
-    # cap and privileged needed for slowlog
-    cap_add:
-      - SYS_PTRACE
-    privileged: true
-    security_opt:
-      - apparmor=unconfined
-      - seccomp=unconfined
-    extra_hosts:
-      - "mariadb:172.18.0.52"
-      - "mongodb:172.18.0.55"
-      - "service:172.18.0.1"
-    environment:
-      TZ: "Asia/Jakarta"
-    mem_limit: 1g
+    healthcheck:
+      disable: true
     volumes:
       - ./:/docker/
       - gopkg:/go/pkg/

@@ -154,7 +154,7 @@ services:
   # RabbitMQ
   #######################################
   rabbit:
-    image: rabbitmq:3.13.0-management
+    image: rabbitmq:3.8.34-management
     container_name: pc_rabbit
     hostname: pc_rabbit
     networks:
@@ -167,13 +167,14 @@ services:
     restart: unless-stopped
     volumes:
       - ./etc/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins
+      - ./etc/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
       - rabbitmq-homedir:/var/lib/rabbitmq
     environment:
       RABBITMQ_ERLANG_COOKIE: "RABBITCOOKIE"
       RABBITMQ_NODENAME: "rabbit@pc_rabbit"
-      RABBITMQ_DEFAULT_USER: "usrqpg"
-      RABBITMQ_DEFAULT_PASS: "usrqpg"
-      RABBITMQ_DEFAULT_VHOST: "qpg"
+      RABBITMQ_DEFAULT_USER: "dev"
+      RABBITMQ_DEFAULT_PASS: "secret"
+      RABBITMQ_DEFAULT_VHOST: "/"
       VIRTUAL_HOST: "rabbit.pc.vm"
       VIRTUAL_PORT: "15672"
 

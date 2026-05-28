@@ -1,0 +1,106 @@
+{
+  "users": [
+    {
+      "name": "dev",
+      "password": "secret",
+      "tags": "administrator"
+    },
+    {
+      "name": "usracc",
+      "password": "usracc",
+      "tags": ""
+    },
+    {
+      "name": "usrqft",
+      "password": "usrqft",
+      "tags": ""
+    },
+    {
+      "name": "usrqpg",
+      "password": "usrqpg",
+      "tags": ""
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "/"
+    },
+    {
+      "name": "qpg"
+    },
+    {
+      "name": "account"
+    },
+    {
+      "name": "account_ft"
+    },
+    {
+      "name": "qft"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "dev",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "dev",
+      "vhost": "qpg",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "dev",
+      "vhost": "account",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "dev",
+      "vhost": "account_ft",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "dev",
+      "vhost": "qft",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "usracc",
+      "vhost": "account",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "usracc",
+      "vhost": "account_ft",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "usrqft",
+      "vhost": "qft",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "usrqpg",
+      "vhost": "qpg",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ]
+}

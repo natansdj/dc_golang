@@ -24,6 +24,9 @@ STACK_CORE := $(INFRA_SERVICES) $(TEMPORAL_SERVICES)
 
 DC := $(DOCKER_COMPOSE) -f $(COMPOSE_FILE)
 
+# Local RabbitMQ bind-mounted data path used by the rabbitmq-homedir volume
+RABBIT_DATA_DIR ?= /Users/natan/lxc/rabbitmq-homedir
+
 .PHONY: help
 help: ## Show this help
 	@echo "dc_golang — Docker Compose helpers"
@@ -150,7 +153,7 @@ pull: ## Pull images for services in COMPOSE_FILE
 # Scripts — database & checks
 # ---------------------------------------------------------------------------
 
-.PHONY: import-db list-db quick-import verify-temporal
+.PHONY: import-db list-db quick-import verify-temporal rabbit-recover rabbit-apply-definitions
 import-db: ## Import SQL from backup/db: make import-db FILE=dump.sql
 	@test -n "$(FILE)" || (echo 'Usage: make import-db FILE=dump.sql'; exit 1)
 	./scripts/import-db.sh "$(FILE)"
@@ -164,6 +167,30 @@ quick-import: ## Quick import: make quick-import FILE=dump.sql DB=MyDb
 
 verify-temporal: ## Run Temporal / Docker layout checks (see script for paths)
 	./scripts/verify-temporal-setup.sh
+
+rabbit-apply-definitions: ## Import etc/rabbitmq/definitions.json into running rabbit container
+	@set -e; \
+	$(DC) up -d rabbit; \
+	$(DC) exec rabbit rabbitmqctl await_startup; \
+	$(DC) exec rabbit rabbitmqctl import_definitions /etc/rabbitmq/definitions.json; \
+	$(DC) exec rabbit rabbitmqctl list_vhosts
+
+rabbit-recover: ## Recover local RabbitMQ by backing up data dir, resetting it, and restarting rabbit
+	@set -e; \
+	ts="$$(date +%Y%m%d-%H%M%S)"; \
+	data_dir="$(RABBIT_DATA_DIR)"; \
+	$(DC) rm -sf rabbit >/dev/null 2>&1 || true; \
+	if [ -d "$$data_dir" ]; then \
+		backup_dir="$$data_dir.bak-$$ts"; \
+		mv "$$data_dir" "$$backup_dir"; \
+		echo "Backed up RabbitMQ data to $$backup_dir"; \
+	fi; \
+	mkdir -p "$$data_dir"; \
+	chmod 0777 "$$data_dir"; \
+	$(DC) up -d rabbit; \
+	$(DC) exec rabbit rabbitmqctl await_startup; \
+		$(DC) exec rabbit rabbitmq-diagnostics -q ping; \
+		$(MAKE) rabbit-apply-definitions
 
 # ---------------------------------------------------------------------------
 # Network prerequisite (external `dev` network)
