@@ -153,7 +153,7 @@ pull: ## Pull images for services in COMPOSE_FILE
 # Scripts — database & checks
 # ---------------------------------------------------------------------------
 
-.PHONY: import-db list-db quick-import verify-temporal rabbit-recover rabbit-apply-definitions
+.PHONY: import-db list-db quick-import verify-temporal rabbit-recover rabbit-apply-definitions rabbit-acl-matrix
 import-db: ## Import SQL from backup/db: make import-db FILE=dump.sql
 	@test -n "$(FILE)" || (echo 'Usage: make import-db FILE=dump.sql'; exit 1)
 	./scripts/import-db.sh "$(FILE)"
@@ -174,6 +174,10 @@ rabbit-apply-definitions: ## Import etc/rabbitmq/definitions.json into running r
 	$(DC) exec rabbit rabbitmqctl await_startup; \
 	$(DC) exec rabbit rabbitmqctl import_definitions /etc/rabbitmq/definitions.json; \
 	$(DC) exec rabbit rabbitmqctl list_vhosts
+
+rabbit-acl-matrix: ## Print compact RabbitMQ user-to-vhost permission matrix
+	@set -e; \
+	python3 -c "import json; from pathlib import Path; definitions = json.loads(Path('etc/rabbitmq/definitions.json').read_text()); permissions = definitions.get('permissions', []); print('VHOST | USER | CONFIGURE | WRITE | READ'); [print('%s | %s | %s | %s | %s' % (entry['vhost'], entry['user'], entry['configure'], entry['write'], entry['read'])) for entry in sorted(permissions, key=lambda item: (item['vhost'], item['user']))]"
 
 rabbit-recover: ## Recover local RabbitMQ by backing up data dir, resetting it, and restarting rabbit
 	@set -e; \
