@@ -2,7 +2,7 @@
 
 > Single source of truth for GitHub Copilot, Cursor, Claude Code, and other AI agents.
 
-**Version:** 1.1.0 — **Updated:** 2026-05-14
+**Version:** 1.2.0 — **Updated:** 2026-05-27
 
 ---
 
@@ -13,6 +13,7 @@
 | **This file** | `AGENTS.md` | Primary AI-agent entry point |
 | **Rules** | `.agents/rules/` | Always-or-conditionally loaded rules |
 | **Skills** | `.agents/skills/` | Domain-expertise packages |
+| **Prompts** | `.agents/prompts/` | Shared reusable prompts |
 | **Cursor rules** | `.cursor/rules/` | Symlink → `.agents/rules/` |
 | **Cursor skills** | `.cursor/skills/` | Symlink → `.agents/skills/` |
 | **Copilot bridge** | `.github/copilot-instructions.md` | Delegates to this file |
@@ -34,7 +35,7 @@ plus reusable Go service image definitions.
 | `docker-compose.yml` | Default stack (MariaDB, Postgres, MongoDB, Redis, RabbitMQ, Temporal, Temporal UI) |
 | `docker-compose.pycd.yml` | Machine-specific variant with host-path volumes and KrakenD |
 | `common-services.yml` | Reusable Go service template (`go1.22`) |
-| `Dockerfile` | `dc_golang:1.22` dev image (Go 1.24, db clients, golangci-lint, air) |
+| `Dockerfile` | `dc_golang:1.25` dev image (Go 1.25, db clients, golangci-lint, air) |
 | `docker/golang/run.sh` | Container entrypoint: `go mod download`, cross-compile, run |
 | `etc/` | MariaDB config, RabbitMQ plugins, Temporal dynamic config, Postgres init |
 | `scripts/` | DB import helpers, `list-db-files.sh`, `verify-temporal-setup.sh` |
@@ -192,6 +193,10 @@ flowchart TD
 |-------|------|----------|
 | docker-compose-workflows | [`.agents/skills/docker-compose-workflows/`](.agents/skills/docker-compose-workflows/) | Editing compose topology, volumes, networks, Go service wiring |
 | mariadb-import-operations | [`.agents/skills/mariadb-import-operations/`](.agents/skills/mariadb-import-operations/) | Running/changing SQL import scripts, local DB recovery |
+
+## Prompts Reference
+
+`.agents/prompts/` is available for shared project prompts. Keep Copilot-only slash-command prompts in `.github/prompts/`.
 
 ---
 

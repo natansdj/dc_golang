@@ -4,7 +4,7 @@
 >
 > This file is the Copilot bridge. All agents share the same source of truth in `AGENTS.md`.
 
-**Version:** 1.1.0 — **Updated:** 2026-05-14
+**Version:** 1.2.0 — **Updated:** 2026-05-27
 
 ---
 
@@ -15,6 +15,8 @@
 | **Primary instructions** | [`AGENTS.md`](../AGENTS.md) |
 | Rules | `.agents/rules/` (symlinked at `.cursor/rules/`) |
 | Skills | `.agents/skills/` (symlinked at `.github/skills/`, `.cursor/skills/`) |
+| Prompts (shared) | `.agents/prompts/` |
+| Prompts (Copilot-only) | `.github/prompts/` |
 | Temporal quick ref | `QUICK_REFERENCE.md` |
 
 ---

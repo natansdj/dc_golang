@@ -139,8 +139,8 @@ shell-mongo: ## mongosh as root
 # ---------------------------------------------------------------------------
 
 .PHONY: build-go-image
-build-go-image: ## Build dc_golang:1.22 (see common-services.yml)
-	docker build -f Dockerfile -t dc_golang:1.22 .
+build-go-image: ## Build dc_golang:1.25 (see common-services.yml)
+	docker build -f Dockerfile -t dc_golang:1.25 .
 
 .PHONY: pull
 pull: ## Pull images for services in COMPOSE_FILE
