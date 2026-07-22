@@ -179,6 +179,24 @@ services:
       VIRTUAL_PORT: "15672"
 
   #######################################
+  # Portainer
+  #######################################
+  portainer:
+    image: portainer/portainer-ce:2.27.9
+    container_name: pc_portainer
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9443:9443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    mem_limit: 300m
+    networks:
+      default:
+        ipv4_address: 172.18.0.252
+
+  #######################################
   # KrakenD
   #######################################
   krakend:
@@ -433,6 +451,8 @@ volumes:
       type: bind
       device: /Users/natan/lxc/temporal
       o: bind
+  portainer_data:
+    driver: local
 
 networks:
   default:
